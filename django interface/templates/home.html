@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jeu Taquin</title>
+
+
+    <link rel="stylesheet" href="../static/bootstrap-4.0.0/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="../static/jquery-confirm-v3.3.4/dist/jquery-confirm.min.css">
+    <script src="../static/jquery.js"></script>
+    <script src="../static/bootstrap-4.0.0/dist/js/bootstrap.js"></script>
+    <script src="../static/jquery-confirm-v3.3.4/dist/jquery-confirm.min.js"></script>
+</head>
+<style>
+    *,body{
+        padding: 0px;
+        margin: 0px;
+    }
+    .head{
+        width: 100%;
+        background-color: #171a1d;
+        color: wheat;
+        padding: 5px;
+        padding-left: 20px;
+    }
+    .taquin-part h1{
+        text-align: center;
+        padding-top: 27%;
+        color: white;
+    }
+
+    .taquin-part{
+            border-style: double;
+            border-width: 10px;
+            border-color: white;
+    }
+    .card{
+        border: 2px solid black;
+    }
+    .champ-saisie{
+        margin: 0 auto;
+        margin-bottom: 10px;
+    }
+</style>
+<body>
+
+<div class="message">
+    {{url}}
+
+</div>
+<div class="container">
+
+    <div class="card">
+      <div class="card-header head">
+          <h1>Jeu de Taquin</h1>
+      </div>
+      <div class="card-body">
+
+          <div class="card champ-saisie" style="width: 34rem;">
+          <div class="card-body">
+             <div class="row form-group ">
+
+               <label class="col-4 offset-3 col-form-label">Taille du Taquin</label>
+               <div class="col-3">
+                   <input type="number" class="form-control"  value="3"  max="5" min="3" id="inputTaille">
+               </div>
+           </div>
+               <div class="row form-group ">
+                   <label class="col-4 offset-3 col-form-label">Choix d'euristique </label>
+                 <div class="col-2  col-form-label">
+                     <select name="heuristique" id="heur" class="form-control">
+                         <option value="1" selected>1</option>
+                         <option value="2">2</option>
+                         <option value="3">3</option>
+                         <option value="4">4</option>
+                         <option value="5">5</option>
+                         <option value="6">6</option>
+                         <option value="7">7</option>
+                         <option value="8">8</option>
+                    </select>
+                 </div>
+           </div>
+          </div>
+        </div>
+
+
+          <div class="row form-group">
+              <div class="col-4 offset-4 offset-1">
+                  <input type="button" id="validation" class="btn btn-primary mb-2 form-control" value="Génerer">
+                  <br>
+                  <button id="resoudre"  class="form-control btn btn-dark" style="display: none" type="button">Résoudre</button>
+                   <br>
+                  <br>
+                  <button id="more"  class="form-control btn btn-dark" style="display: none" type="button">Détails de la résoultion</button>
+              </div>
+          </div>
+
+        <div class="row form-group">
+             <div class="col-6 offset-3">
+            <div class="taquin">
+                <!-- div de taquin -->
+                <div id="taquin"></div>
+
+            </div>
+        </div>
+        </div>
+
+
+
+
+      </div>
+    </div>
+
+
+
+</div>
+
+
+
+<script src="../static/taquin.js"></script>
+<script type="text/javascript">
+
+    var widthGrille = 500;
+    var heightGrille= 500;
+    var time = "";
+    var exp = "";
+    var fro = "";
+    var lenpath ="";
+    var list_data = [];
+    var clone_taquin = null;
+
+
+
+	$("#validation").click(function () {
+        var size = $('#inputTaille').val();
+        var mix = 100;
+        if(size == 3){
+            mix = 100;
+        }
+        else if(size == 4){
+            mix == 50;
+        }
+        else if(size == 5){
+            mix = 80;
+        }
+        if(size <= 0){size=3;}
+        $("#taquin").gameTaquin(
+            "../static/image-taquin.jpg",
+            {
+                width: widthGrille,
+                height: heightGrille,
+                division: size,
+                hidePart: "br",
+                mixing: mix,
+            }
+	    );
+
+        setTimeout(function () {
+            $('.taquin-0-0').click();
+        }, 50);
+
+        $('#resoudre').fadeIn(200);
+
+
+
+	});
+
+
+
+	function getGrille(){
+        var taille = parseInt($('#inputTaille').val());
+	    var unite = parseInt(widthGrille/taille);
+
+	    var matrix = [];
+        for(var i=0; i<taille; i++) {
+            matrix[i] = new Array(taille);
+        }
+
+        $('.taquin-part').each(function () {
+
+             var i =  parseInt($(this).css('left'));
+             var j =  parseInt($(this).css('top'));
+             var v =  $(this).find('h1').text();
+             i =parseInt( i / unite);
+             j =  parseInt(j / unite);
+             matrix[i][j] = v;
+
+        });
+
+        // recuperer dans une chaine
+
+
+        var newArr = [];
+
+        for(var i = 0; i < matrix.length; i++) {
+              for(var j = 0; j < matrix.length; j++) {
+                newArr.push(matrix[j][i]);
+            }
+        }
+        return newArr;
+    }
+
+    $('#more').click(function () {
+              var contenu = "<div>" +
+                    "<p>Temps d'execution : <strong> "+ time+ " s</strong></p>" +
+                    "<p>Longeur de chemin : <strong>"+ lenpath + "</strong></p>" +
+                    "<p>Taille de la frontière : <strong> "+ fro+ " état </strong></p>" +
+                    "<p>Taille de l'ensemble exploré : <strong>"+ exp+ " état </strong></p>" +
+                    "</div>" ;
+           $.alert({
+               title: '<h3>Information sur la résolution de taquin : <h3>',
+               theme:'material',
+               animation:'rotate',
+               type:'dark',
+               boxWidth: '550px',
+               useBootstrap: false,
+               content: contenu,
+               buttons: {
+                   confirm: {
+                       text: 'Fermer',
+                       btnClass: 'btn-dark'
+                   }
+               }
+           });
+    });
+
+	$('#resoudre').click(function() {
+
+	    var taille = parseInt($('#inputTaille').val());
+        var heuristique = parseInt($( "#heur option:selected" ).val());
+	    var arr = [];
+	    clone_taquin = $('.taquin-generate').clone(true);
+	    arr = getGrille();
+        $.get('myfunction',{arr:arr, taille:taille, heuristique :heuristique}, function(data){
+            $('.message').append(data.data);
+            list_data = data.nums;
+            time = data.time;
+            exp = data.exp;
+            fro = data.fro;
+            lenpath = data.lenpath;
+
+            var taquins = $('.taquin-part');
+
+            const INTERVAL = 800;	// in milliseconds
+            $('#more').fadeIn(200);
+            list_data.forEach((item, index) => {
+                setTimeout(() => {
+                    $(taquins).each(function () {
+                    if(parseInt($(this).find('h1').text()) === parseInt(item)){
+                        $(this).click();
+                    }
+                });
+                }, INTERVAL * index);
+            });
+              $('#resoudre').fadeIn(200);
+
+           // of course you can do something more fancy with your respone
+       });
+
+    });
+
+
+
+</script>
+<script>
+</script>
+</body>
+</html>
